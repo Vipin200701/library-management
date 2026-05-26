@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Borrow / Return — Library</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+    <link href="css/style.css" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="brand"><i class="bi bi-building-fill"></i> LibraryOS</div>
+    <div class="nav-label">Overview</div>
+    <a href="index.html"   class="nav-link"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <div class="nav-label">Catalogue</div>
+    <a href="books.html"   class="nav-link"><i class="bi bi-book"></i> Books</a>
+    <a href="members.html" class="nav-link"><i class="bi bi-people"></i> Members</a>
+    <div class="nav-label">Circulation</div>
+    <a href="borrow.html"  class="nav-link active"><i class="bi bi-arrow-left-right"></i> Borrow / Return</a>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+    <!-- Topbar -->
+    <div class="topbar">
+        <h5><i class="bi bi-arrow-left-right me-2"></i>Borrow / Return</h5>
+        <button class="btn btn-outline-danger btn-sm" onclick="markOverdue()">
+            <i class="bi bi-exclamation-triangle me-1"></i>Mark Overdue
+        </button>
+    </div>
+
+    <!-- Issue + Return Forms -->
+    <div class="row g-3 mb-4">
+
+        <!-- Issue a Book -->
+        <div class="col-md-6">
+            <div class="card-box">
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-book-fill text-primary me-2"></i>Issue a Book
+                </h6>
+
+                <!-- Member Search -->
+                <div class="mb-3" style="position:relative">
+                    <label class="form-label">Search Member</label>
+                    <input type="text" id="memberSearch" class="form-control"
+                           placeholder="Type member name..."
+                           oninput="searchMemberDropdown(this.value)"
+                           autocomplete="off"/>
+                    <div id="memberDropdown" class="dropdown-list"></div>
+                    <div id="selectedMember" class="selected-tag d-none">
+                        <span id="selectedMemberText"></span>
+                        <i class="bi bi-x-circle ms-2"
+                           style="cursor:pointer" onclick="clearMember()"></i>
+                    </div>
+                    <input type="hidden" id="issueMemberId"/>
+                </div>
+
+                <!-- Book Search -->
+                <div class="mb-3" style="position:relative">
+                    <label class="form-label">Search Book</label>
+                    <input type="text" id="bookSearch" class="form-control"
+                           placeholder="Type book title or author..."
+                           oninput="searchBookDropdown(this.value)"
+                           autocomplete="off"/>
+                    <div id="bookDropdown" class="dropdown-list"></div>
+                    <div id="selectedBook" class="selected-tag d-none">
+                        <span id="selectedBookText"></span>
+                        <i class="bi bi-x-circle ms-2"
+                           style="cursor:pointer" onclick="clearBook()"></i>
+                    </div>
+                    <input type="hidden" id="issueBookId"/>
+                </div>
+
+                <!-- Due Date -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        Due Date
+                        <small class="text-muted">(optional — default 14 days)</small>
+                    </label>
+                    <input type="date" id="issueDueDate" class="form-control"/>
+                </div>
+
+                <button class="btn btn-primary w-100" onclick="issueBook()">
+                    <i class="bi bi-book-fill me-1"></i>Issue Book
+                </button>
+            </div>
+        </div>
+
+        <!-- Return a Book -->
+        <div class="col-md-6">
+            <div class="card-box">
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-arrow-return-left text-success me-2"></i>Return a Book
+                </h6>
+
+                <div class="mb-3">
+                    <label class="form-label">Borrow Record ID</label>
+                    <input type="number" id="returnRecordId" class="form-control"
+                           placeholder="e.g. 1 — check Active Borrows table below"/>
+                </div>
+
+                <!-- Preview box -->
+                <div id="returnPreview"
+                     class="mb-3 p-3 rounded"
+                     style="background:#f7fafc;font-size:13px;color:#718096;min-height:90px;">
+                    Record details will appear here after you enter a Record ID
+                </div>
+
+                <button class="btn btn-success w-100" onclick="returnBook()">
+                    <i class="bi bi-arrow-return-left me-1"></i>Mark as Returned
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Borrow Records Table -->
+    <div class="card-box">
+        <ul class="nav nav-tabs mb-3" id="borrowTabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#"
+                   onclick="switchTab('active', this); return false;">
+                    <i class="bi bi-clock me-1"></i>Active Borrows
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#"
+                   onclick="switchTab('overdue', this); return false;">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Overdue
+                </a>
+            </li>
+        </ul>
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Record ID</th>
+                    <th>Member</th>
+                    <th>Book</th>
+                    <th>Borrowed On</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="borrowTable">
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-3">Loading...</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/borrow.js"></script>
+</body>
+</html>
